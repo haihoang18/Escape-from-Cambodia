@@ -11,16 +11,20 @@ StunGun::StunGun(SDL_Renderer* renderer, int* target_x, int* target_y) {
     this->target_x = target_x;
     this->target_y = target_y;
     
-    // Khởi tạo vị trí ban đầu từ bên trái màn hình
-    resetPosition();
+    // Kích thước màn hình
+    const int WINDOW_WIDTH = 1400;
+    const int WINDOW_HEIGHT = 750;
     
     // Kích thước stungun lớn hơn (70% chiều cao màn hình)
-    const int WINDOW_HEIGHT = 750;
-    this->height = WINDOW_HEIGHT * 0.7;  // 70% chiều cao màn hình
+    this->height = WINDOW_HEIGHT * 0.9;  // 70% chiều cao màn hình
     this->width = this->height;          // Giữ tỷ lệ khung hình vuông
     
+    // Đặt vị trí ban đầu ở giữa bên trái màn hình, nhưng chưa xuất hiện
+    x = -width * 2;  // Đặt xa hơn một chút để ban đầu không xuất hiện
+    y = (WINDOW_HEIGHT - height) / 2;  // Ở giữa chiều cao màn hình
+    
     // Tốc độ di chuyển (chậm hơn)
-    this->speed = 2;
+    this->speed = 1;
     
     // Thiết lập animation
     this->current_frame = 0;
@@ -48,9 +52,8 @@ bool StunGun::loadTextures() {
     // Load các texture animation của stungun
     SDL_Texture* stungun_1 = load_texture(renderer, "stungun/stungun_1.png");
     SDL_Texture* stungun_2 = load_texture(renderer, "stungun/stungun_2.png");
-    SDL_Texture* stungun_3 = load_texture(renderer, "stungun/stungun_3.png");
     
-    if (!stungun_1 || !stungun_2 || !stungun_3) {
+    if (!stungun_1 || !stungun_2 ) {
         std::cout << "Không thể tải hình ảnh stungun!" << std::endl;
         return false;
     }
@@ -58,7 +61,6 @@ bool StunGun::loadTextures() {
     // Thêm vào vector
     textures.push_back(stungun_1);
     textures.push_back(stungun_2);
-    textures.push_back(stungun_3);
     
     return true;
 }
@@ -69,11 +71,9 @@ void StunGun::resetPosition() {
     const int WINDOW_WIDTH = 1400;
     const int WINDOW_HEIGHT = 750;
     
-    // Đặt vị trí bên ngoài màn hình (bên trái)
-    x = -width;
-    
-    // Vị trí y ngẫu nhiên trong khoảng từ 0 đến chiều cao màn hình trừ chiều cao stungun
-    y = std::rand() % (WINDOW_HEIGHT - height);
+    // Đặt vị trí ban đầu ở giữa bên trái màn hình, nhưng chưa xuất hiện
+    x = -width * 2;  // Đặt xa hơn một chút để ban đầu không xuất hiện
+    y = (WINDOW_HEIGHT - height) / 2;  // Ở giữa chiều cao màn hình
 }
 
 // Cập nhật vị trí
