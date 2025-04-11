@@ -14,8 +14,8 @@ const int WINDOW_WIDTH = 1400;
 const int WINDOW_HEIGHT = 750;
 
 // Kích thước nhân vật (có thể điều chỉnh tùy theo hình ảnh thực tế)
-const int CHARACTER_WIDTH = 100;
-const int CHARACTER_HEIGHT = 100;
+const int CHARACTER_WIDTH = 125;
+const int CHARACTER_HEIGHT = 125;
 
 // Thông số game
 const int GROUND_LEVEL = WINDOW_HEIGHT - 100; // Mặt đất cách đáy 100 pixel
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Khởi tạo trạng thái nhân vật
-    int character_x = WINDOW_WIDTH / 2 - CHARACTER_WIDTH / 2; // Vị trí ban đầu giữa màn hình
+    int character_x = 0; // Vị trí ban đầu giữa màn hình
     int character_y = GROUND_LEVEL - CHARACTER_HEIGHT; // Đặt trên mặt đất
     int velocity_y = 0; // Vận tốc theo trục y (dùng cho nhảy)
     bool is_jumping = false; // Trạng thái nhảy
@@ -210,26 +210,34 @@ int main(int argc, char* argv[]) {
             }
         }
         if (moving_right && !hit_by_stungun) {
-            character_x += MOVE_SPEED;
-            
-            // Cuộn background sang trái khi nhân vật di chuyển sang phải và ở gần rìa phải
-            if (character_x > WINDOW_WIDTH * 3/4 && !transition_complete) {
-                bg_pos_x -= BACKGROUND_SCROLL_SPEED;
-                character_x -= BACKGROUND_SCROLL_SPEED; // Giữ nhân vật ở vị trí tương đối
-                
-                // Chuyển sang background2 khi background1 đã cuộn hết
-                if (bg_pos_x <= -BACKGROUND_WIDTH && showing_background1) {
-                    showing_background1 = false;
-                    bg_pos_x = 0; // Reset vị trí background
-                }
-                
-                // Khi background2 cuộn hết
-                if (!showing_background1 && bg_pos_x <= -BACKGROUND_WIDTH) {
-                    transition_complete = true;
-                    bg_pos_x = -BACKGROUND_WIDTH; // Giữ background2 ở vị trí cuối
-                }
-            }
+    // Nếu vẫn đang ở background1 và chưa đến ranh giới
+    if (showing_background1) {
+        character_x += MOVE_SPEED;
+        
+        // Khi gần đến ranh giới background1 và background2
+        if (character_x > WINDOW_WIDTH * 3/4 && bg_pos_x > -BACKGROUND_WIDTH) {
+            // Cuộn background thay vì di chuyển nhân vật
+            bg_pos_x -= BACKGROUND_SCROLL_SPEED;
+            character_x -= BACKGROUND_SCROLL_SPEED; // Giữ nhân vật ở vị trí tương đối
         }
+        
+        // Khi đến ranh giới background1 và background2
+        if (bg_pos_x <= -BACKGROUND_WIDTH + CHARACTER_WIDTH + 50) { // Thêm một chút khoảng cách
+            // Chuyển sang background2
+            showing_background1 = false;
+            bg_pos_x = 0; // Reset vị trí background
+            character_x = 50; // Đặt nhân vật ở đầu background2 (thêm một chút khoảng cách)
+        }
+    } else {
+        // Đã ở background2, cho phép di chuyển bình thường
+        character_x += MOVE_SPEED;
+        
+        // Giới hạn không cho di chuyển quá ranh giới bên phải của background2
+        if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH - 50) {
+            character_x = WINDOW_WIDTH - CHARACTER_WIDTH - 50;
+        }
+    }
+}
 
         // Cập nhật vị trí nhân vật khi nhảy
         if (is_jumping && !hit_by_stungun) {
@@ -262,24 +270,24 @@ int main(int argc, char* argv[]) {
         // Cập nhật vị trí stungun
         stungun.update();
 
-        // Xóa màn hình
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Màu đen
-        SDL_RenderClear(renderer);
+       // Xóa màn hình
+SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Màu đen
+SDL_RenderClear(renderer);
 
-        // Vẽ background với vị trí cuộn
-        SDL_Rect bg_rect1 = {(int)bg_pos_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-        SDL_Rect bg_rect2 = {(int)bg_pos_x + BACKGROUND_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-        
-        if (showing_background1) {
-            // Vẽ background1 ở vị trí hiện tại
-            SDL_RenderCopy(renderer, background1, NULL, &bg_rect1);
-            // Vẽ background2 sau background1
-            SDL_RenderCopy(renderer, background2, NULL, &bg_rect2);
-        } else {
-            // Vẽ background2 ở vị trí hiện tại
-            SDL_RenderCopy(renderer, background2, NULL, &bg_rect1);
-            // Có thể vẽ background khác sau background2 nếu cần
-        }
+// Vẽ background
+if (showing_background1) {
+    // Vẽ background1 ở vị trí hiện tại
+    SDL_Rect bg_rect1 = {(int)bg_pos_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    SDL_RenderCopy(renderer, background1, NULL, &bg_rect1);
+    
+    // Vẽ background2 ngay sau background1
+    SDL_Rect bg_rect2 = {(int)bg_pos_x + BACKGROUND_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    SDL_RenderCopy(renderer, background2, NULL, &bg_rect2);
+} else {
+    // Chỉ vẽ background2 khi đã chuyển sang
+    SDL_Rect bg_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    SDL_RenderCopy(renderer, background2, NULL, &bg_rect);
+}
 
         // Vẽ nhân vật với animation thích hợp
         SDL_Rect character_rect = {character_x, character_y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
