@@ -24,7 +24,7 @@
 - Trạng thái hít bụi tiên: dùng tất cả các nút mũi tên để di chuyển tự do trong background, không chịu tác dụng của trọng lực
 
 4. Cơ chế
-- Nhân vật chính chạm vào vật là sẽ thua game 👎👎👎
+- Nhân vật chính chạm vào địch, súng điện là thua game 👎👎👎
 - Địch sẽ xuất hiện cả bên dưới và bên trên màn hình 
 - Sau mỗi 2 lần nhảy sẽ random lực nhảy, có 3 trường hợp:
     * 0,5 lực gốc
