@@ -92,15 +92,14 @@ void StunGun::update() {
     float length = sqrt(dx*dx + dy*dy);
     
     // Nếu đủ xa thì di chuyển theo hướng đó
-    // Nếu đủ xa thì di chuyển theo hướng đó
     if (length > 10) {
         // Chuẩn hóa vector
         dx /= length;
         dy /= length;
-
-        // Di chuyển theo hướng đã tính với tốc độ không đổi
-        x += static_cast<int>(dx * this->speed);
-        y += static_cast<int>(dy * this->speed);
+        
+        // Di chuyển theo hướng đã tính, với trọng số nhiều hơn cho chuyển động ngang
+        x += static_cast<int>(dx * speed * 1.5); // Tăng tốc độ di chuyển ngang
+        y += static_cast<int>(dy * speed * 0.7); // Giảm tốc độ di chuyển dọc
     }
     
     // Cập nhật animation
