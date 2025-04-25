@@ -3,12 +3,14 @@
 #include "background.h"
 #include "utils.h"
 #include "stungun.h"
-#include "obstacle.h" // Thêm include mới
+#include "obstacle.h"
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
 #include <iostream>
-#include <cstdlib> // Thêm thư viện này cho rand() và srand()
-#include <ctime>   // Thêm thư viện này cho time()
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <cmath> // Thêm thư viện cmath cho sqrt nếu cần trong các file khác, mặc dù main không dùng trực tiếp
 
 using namespace std;
 
@@ -22,7 +24,7 @@ const int CHARACTER_HEIGHT = 125;
 
 // Thông số game
 const int GROUND_LEVEL = WINDOW_HEIGHT - 100; // Mặt đất cách đáy 100 pixel
-const int JUMP_VELOCITY = -20; // Tốc độ nhảy ban đầu (âm để đi lên)
+const int JUMP_VELOCITY = -25; // Tốc độ nhảy ban đầu (âm để đi lên)
 const int GRAVITY = 1; // Gia tốc trọng trường
 const int MOVE_SPEED = 5; // Tốc độ di chuyển nhân vật
 
@@ -32,9 +34,31 @@ const int ANIMATION_SPEED = 10; // Số frame để chuyển sang frame animatio
 // Thông số background
 const int BACKGROUND_SCROLL_SPEED = 5; // Tốc độ cuộn background
 
+
+// Cấu trúc cho vật phẩm Power-up
+struct PowerUp {
+    SDL_Rect rect;
+    bool active; // Cờ để kiểm tra vật phẩm có đang hoạt động không
+};
+
 // Biến cho hệ số nhảy ngẫu nhiên
-float jump_multiplier = 1.0f; // Hệ số nhảy ban đầu
-int jumps_with_multiplier = 0; // Số lần nhảy với hệ số hiện tại
+float jump_multiplier = 1.0f;
+int jumps_with_multiplier = 0;
+
+// Texture cho vật phẩm power-up
+SDL_Texture* power_up_texture = nullptr;
+// Danh sách các vật phẩm power-up đang hoạt động
+std::vector<PowerUp> power_ups;
+// Cờ cho trạng thái "có thể bay"
+bool can_fly = false;
+// Bộ đếm thời gian bay
+int fly_timer = 0;
+const int FLY_DURATION_FRAMES = 5 * 60; // Thời gian bay 5 giây ở 60 FPS (giả sử 60 FPS)
+
+// Thông số spawn vật phẩm
+int power_up_spawn_timer = 0;
+const int POWER_UP_SPAWN_INTERVAL = 300; // Khoảng thời gian tối thiểu giữa các lần thử spawn (ví dụ: 5 giây ở 60 FPS)
+const int POWER_UP_SPAWN_CHANCE = 10; // Tỷ lệ 1/20 để spawn khi timer đạt ngưỡng
 
 // Hàm để tạo hệ số nhảy ngẫu nhiên mới
 float generateRandomJumpMultiplier() {
@@ -47,6 +71,23 @@ float generateRandomJumpMultiplier() {
         return 2.0f;
     }
 }
+
+// Hàm load texture (giữ lại vì vẫn dùng texture cho các đối tượng khác)
+SDL_Texture* load_texture(SDL_Renderer* renderer, const string& file_path) {
+    SDL_Texture* newTexture = nullptr;
+    SDL_Surface* loadedSurface = IMG_Load(file_path.c_str());
+    if (loadedSurface == nullptr) {
+        cout << "Không thể tải hình ảnh " << file_path << "! SDL_image Error: " << IMG_GetError() << endl;
+    } else {
+        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+        if (newTexture == nullptr) {
+            cout << "Không thể tạo texture từ " << file_path << "! SDL Error: " << SDL_GetError() << endl;
+        }
+        SDL_FreeSurface(loadedSurface);
+    }
+    return newTexture;
+}
+
 
 int main(int argc, char* argv[]) {
     // Khởi tạo SDL và SDL_image
@@ -66,11 +107,8 @@ int main(int argc, char* argv[]) {
     // Tạo hệ số nhảy ngẫu nhiên ban đầu
     jump_multiplier = generateRandomJumpMultiplier();
 
-    // ... (các phần code khởi tạo khác giữ nguyên)
-
     // Tạo cửa sổ và renderer
-    SDL_Window* window = SDL_CreateWindow("Game Nhan Vat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window) {
         cout << "Không thể tạo cửa sổ: " << SDL_GetError() << endl;
         IMG_Quit();
@@ -86,126 +124,106 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // Tải hình ảnh nhân vật
+    // Tải texture cho vật phẩm power-up
+    power_up_texture = load_texture(renderer, "background/bui_tien.png");
+    if (!power_up_texture) {
+        cout << "Không thể tải texture vật phẩm power-up!" << endl;
+        // Tiếp tục game mà không có power-up hoặc thoát tùy ý
+    }
+
+    // Tải các texture nhân vật (giữ lại)
     SDL_Texture* horseman_right = load_texture(renderer, "character/horseman_right.png");
     SDL_Texture* horseman_left = load_texture(renderer, "character/horseman_left.png");
-    
-    // Tải hình ảnh animation di chuyển
-    SDL_Texture* horseman_right_1 = load_texture(renderer, "character/horseman_right_1.png");
+     SDL_Texture* horseman_right_1 = load_texture(renderer, "character/horseman_right_1.png");
     SDL_Texture* horseman_right_2 = load_texture(renderer, "character/horseman_right_2.png");
     SDL_Texture* horseman_left_1 = load_texture(renderer, "character/horseman_left_1.png");
     SDL_Texture* horseman_left_2 = load_texture(renderer, "character/horseman_left_2.png");
-    
-    // Tải hình ảnh nhảy
     SDL_Texture* horseman_jump_right = load_texture(renderer, "character/horseman_jump_right.png");
     SDL_Texture* horseman_jump_left = load_texture(renderer, "character/horseman_jump_left.png");
-    
-    // Kiểm tra tất cả textures đã được tải đúng
-    if (!horseman_right || !horseman_left || 
-        !horseman_right_1 || !horseman_right_2 || 
-        !horseman_left_1 || !horseman_left_2 || 
-        !horseman_jump_right || !horseman_jump_left) {
-        cout << "Không thể tải hình ảnh nhân vật!" << endl;
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
-    }
 
-    // Tải hình ảnh các background
-    SDL_Texture* background1 = load_texture(renderer, "background/background1.png");
-    SDL_Texture* background2 = load_texture(renderer, "background/background2.png");
-    if (!background1 || !background2) {
-        cout << "Không thể tải hình ảnh background!" << endl;
-        // Giải phóng tất cả texture đã tải
-        SDL_DestroyTexture(horseman_right);
-        SDL_DestroyTexture(horseman_left);
-        SDL_DestroyTexture(horseman_right_1);
-        SDL_DestroyTexture(horseman_right_2);
-        SDL_DestroyTexture(horseman_left_1);
-        SDL_DestroyTexture(horseman_left_2);
-        SDL_DestroyTexture(horseman_jump_right);
-        SDL_DestroyTexture(horseman_jump_left);
-        if (background1) SDL_DestroyTexture(background1);
-        if (background2) SDL_DestroyTexture(background2);
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        IMG_Quit();
-        SDL_Quit();
-        return -1;
-    }
 
-    // Khởi tạo trạng thái nhân vật
-    int character_x = WINDOW_WIDTH / 4; // Vị trí ban đầu 1/4 màn hình
-    int character_y = GROUND_LEVEL - CHARACTER_HEIGHT; // Đặt trên mặt đất
-    int velocity_y = 0; // Vận tốc theo trục y (dùng cho nhảy)
-    bool is_jumping = false; // Trạng thái nhảy
-    bool facing_right = true; // Hướng ban đầu: quay phải
-    bool is_moving = false; // Trạng thái di chuyển
-    
-    // Biến kiểm tra phím nhấn
+     if (!horseman_right || !horseman_left || !horseman_right_1 || !horseman_right_2 || !horseman_left_1 || !horseman_left_2 || !horseman_jump_right || !horseman_jump_left) {
+         cout << "Lỗi tải texture nhân vật!" << endl;
+         // Xử lý lỗi, có thể thoát game
+          SDL_DestroyRenderer(renderer);
+          SDL_DestroyWindow(window);
+          IMG_Quit();
+          SDL_Quit();
+          return -1;
+     }
+
+
+    // Khởi tạo vị trí nhân vật
+    int character_x = WINDOW_WIDTH / 4;
+    int character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
+    int velocity_y = 0;
+    bool is_jumping = false;
+    bool facing_right = true;
+    bool is_moving = false;
     bool moving_left = false;
     bool moving_right = false;
-    
-    // Biến đếm frame cho animation
+    bool game_over = false;
+    bool hit_by_stungun = false; // Biến để kiểm tra xem nhân vật có bị stungun bắn trúng không
+    int stunned_timer = 0; // Bộ đếm thời gian bị stunned
+
+    // Khởi tạo stungun
+    StunGun stungun(renderer, &character_x, &character_y);
+
+    // Khởi tạo vật cản
+    Obstacle obstacles(renderer, &character_x, &character_y, WINDOW_WIDTH, WINDOW_HEIGHT, GROUND_LEVEL);
+
+
+    // Khởi tạo background (giữ lại texture)
+    SDL_Texture* background1 = load_texture(renderer, "background/background1.png");
+    SDL_Texture* background2 = load_texture(renderer, "background/background2.png");
+     if (!background1 || !background2) {
+        cout << "Không thể tải hình ảnh background!" << endl;
+        // Tiếp tục game mà không có background hoặc thoát tùy ý
+    }
+    int bg1_position_x = 0;
+    int bg2_position_x = WINDOW_WIDTH;
+    bool game_world_moving = true; // Biến để kiểm soát khi thế giới game di chuyển
+
+
+    // Biến cho animation nhân vật
     int animation_frame = 0;
     int animation_counter = 0;
-    
-    // Tạo đối tượng stungun đuổi theo nhân vật
-    StunGun stungun(renderer, &character_x, &character_y);
-    
-    // Tạo đối tượng chướng ngại vật
-    Obstacle obstacles(renderer, &character_x, &character_y, WINDOW_WIDTH, WINDOW_HEIGHT, GROUND_LEVEL);
-    
-    // Biến kiểm tra va chạm
-    bool hit_by_stungun = false;
-    bool game_over = false; // Biến mới cho trạng thái thua
-    
-    // Đếm thời gian bị stunned
-    int stunned_timer = 0;
-    const int STUNNED_DURATION = 60; // Khoảng 1 giây ở 60 FPS
 
-    // Khởi tạo vị trí background
-    int bg1_position_x = 0;
-    int bg2_position_x = WINDOW_WIDTH; // Background 2 bắt đầu nối tiếp background 1
-
-    // Biến kiểm soát game
-    bool game_world_moving = false; // Khi true, thế giới di chuyển thay vì nhân vật
-
-    // Vòng lặp chính
+    // Vòng lặp game chính
     bool running = true;
-    SDL_Event event;
     while (running) {
-        // Xử lý sự kiện bàn phím
+        SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
-            } else if (event.type == SDL_KEYDOWN) { // Chỉ kiểm tra SDL_KEYDOWN
+            } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_LEFT: // Di chuyển sang trái
-                        if (!hit_by_stungun && !game_over) { // Chỉ di chuyển khi không bị stunned hoặc game over
+                        if (!hit_by_stungun && !game_over && !can_fly) { // Chỉ di chuyển khi không bị stunned, game over, và không bay
+                            moving_left = true;
+                            facing_right = false;
+                            is_moving = true;
+                        } else if (can_fly) { // Khi bay, mũi tên trái để di chuyển trái
                             moving_left = true;
                             facing_right = false;
                             is_moving = true;
                         }
                         break;
                     case SDLK_RIGHT: // Di chuyển sang phải
-                        if (!hit_by_stungun && !game_over) { // Chỉ di chuyển khi không bị stunned hoặc game over
+                        if (!hit_by_stungun && !game_over && !can_fly) { // Chỉ di chuyển khi không bị stunned, game over, và không bay
+                            moving_right = true;
+                            facing_right = true;
+                            is_moving = true;
+                        } else if (can_fly) { // Khi bay, mũi tên phải để di chuyển phải
                             moving_right = true;
                             facing_right = true;
                             is_moving = true;
                         }
                         break;
-                    case SDLK_UP: // Nhảy
-                        if (!is_jumping && !hit_by_stungun && !game_over) { // Chỉ nhảy khi không đang nhảy, không bị stunned hoặc game over
-                            velocity_y = JUMP_VELOCITY; // Sử dụng JUMP_VELOCITY gốc ở đây, hệ số nhảy được xử lý sau trong logic game
+                    case SDLK_SPACE: // Nhảy (nút SPACE)
+                        if (!is_jumping && !hit_by_stungun && !game_over && !can_fly) { // Chỉ nhảy khi không đang nhảy, không bị stunned, game over, và không bay
+                            velocity_y = JUMP_VELOCITY * jump_multiplier; // Áp dụng hệ số nhảy
                             is_jumping = true;
-
-                            // Logic cho hệ số nhảy ngẫu nhiên cần được di chuyển xuống sau khi tính toán velocity_y
-                            // (hoặc áp dụng hệ số ngay tại đây)
-                            // Áp dụng hệ số nhảy ngay khi nhấn phím UP
-                            velocity_y = JUMP_VELOCITY * jump_multiplier;
 
                             // Cập nhật bộ đếm số lần nhảy với hệ số hiện tại
                             jumps_with_multiplier++;
@@ -215,6 +233,17 @@ int main(int argc, char* argv[]) {
                                 jump_multiplier = generateRandomJumpMultiplier();
                                 jumps_with_multiplier = 0;
                             }
+                        }
+                        break;
+                    case SDLK_UP: // Di chuyển lên khi bay
+                        if (can_fly) {
+                            velocity_y = -MOVE_SPEED; // Tốc độ di chuyển lên khi bay
+                        }
+                        // Logic nhảy cũ ở đây đã được chuyển sang SDLK_SPACE
+                        break;
+                    case SDLK_DOWN: // Di chuyển xuống khi bay
+                         if (can_fly) {
+                            velocity_y = MOVE_SPEED; // Tốc độ di chuyển xuống khi bay
                         }
                         break;
                     case SDLK_r: // Phím tắt để khởi động lại game khi thua
@@ -233,9 +262,10 @@ int main(int argc, char* argv[]) {
                             stunned_timer = 0;
                             bg1_position_x = 0;
                             bg2_position_x = WINDOW_WIDTH;
-                            game_world_moving = false;
+                            game_world_moving = true; // Bắt đầu cuộn lại background màu
                             animation_frame = 0;
                             animation_counter = 0;
+
 
                             // Reset các đối tượng trong game
                             stungun.resetAfterCollision();
@@ -244,199 +274,267 @@ int main(int argc, char* argv[]) {
                              // Reset lại hệ số nhảy và bộ đếm khi game restart
                             jump_multiplier = generateRandomJumpMultiplier();
                             jumps_with_multiplier = 0;
+                            // Reset trạng thái bay và xóa tất cả power-up
+                            can_fly = false;
+                            fly_timer = 0; // Reset bộ đếm thời gian bay
+                            power_ups.clear();
+                            power_up_spawn_timer = 0;
                         }
                         break;
                 }
             } else if (event.type == SDL_KEYUP) {
-               // ... xử lý KEYUP (đảm bảo các điều kiện !hit_by_stungun && !game_over cũng được thêm vào đây nếu cần ngăn dừng di chuyển khi game over)
                switch (event.key.keysym.sym) {
                     case SDLK_LEFT:
-                        if (!hit_by_stungun && !game_over) {
+                        if (!hit_by_stungun && !game_over || can_fly) { // Dừng di chuyển trái khi nhả phím (kể cả khi bay)
                             moving_left = false;
-                            if (!moving_right) is_moving = false;
+                            if (!moving_right && ! (can_fly && moving_right)) is_moving = false;
                         }
                         break;
                     case SDLK_RIGHT:
-                         if (!hit_by_stungun && !game_over) {
+                         if (!hit_by_stungun && !game_over || can_fly) { // Dừng di chuyển phải khi nhả phím (kể cả khi bay)
                             moving_right = false;
-                            if (!moving_left) is_moving = false;
+                            if (!moving_left && ! (can_fly && moving_left)) is_moving = false;
+                        }
+                        break;
+                     case SDLK_UP: // Dừng di chuyển lên khi bay
+                        if (can_fly) {
+                            velocity_y = 0;
+                        }
+                        break;
+                    case SDLK_DOWN: // Dừng di chuyển xuống khi bay
+                         if (can_fly) {
+                            velocity_y = 0;
                         }
                         break;
                 }
             }
         }
-        
-        if (!game_over) {
-            // Kiểm tra va chạm với stungun
-            if (!hit_by_stungun && stungun.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
-                hit_by_stungun = true;
-                stungun.resetAfterCollision(); // Đặt lại vị trí stungun sau khi va chạm
+
+        // Cập nhật logic game chỉ khi game chưa kết thúc và không bị stunned
+        if (!game_over && !hit_by_stungun) {
+
+            // Áp dụng trọng lực nếu không trong trạng thái bay
+            if (!can_fly) {
+                 velocity_y += GRAVITY;
+            } else {
+                 // Nếu đang bay, tăng bộ đếm thời gian bay
+                 fly_timer++;
+                 // Kiểm tra xem đã hết thời gian bay chưa
+                 if (fly_timer >= FLY_DURATION_FRAMES) {
+                     can_fly = false; // Tắt trạng thái bay
+                     fly_timer = 0; // Reset timer
+                     // Khi hết trạng thái bay, có thể đặt lại vận tốc y về 0 hoặc giá trị nhỏ
+                     // để tránh rơi quá nhanh ngay lập tức, tùy thuộc vào cảm giác game muốn
+                     velocity_y = 0; // Ví dụ: đặt vận tốc y về 0
+                     // cout << "Fly duration ended. Can Fly: " << can_fly << endl; // Debug
+                 }
             }
 
-            // Xử lý thời gian stunned
-            if (hit_by_stungun) {
-                stunned_timer++;
-                if (stunned_timer >= STUNNED_DURATION) {
-                    hit_by_stungun = false;
-                    stunned_timer = 0;
-                    // Đảm bảo stungun được đặt lại vị trí nếu chưa được làm trước đó
-                    stungun.resetAfterCollision();
-                }
-            }
-            
-            // Kiểm tra va chạm với chướng ngại vật
-            if (obstacles.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
-                game_over = true; // Khi va chạm với chướng ngại vật, game kết thúc
-            }
-            
-            // Xử lý di chuyển nhân vật
-            if (moving_left && !hit_by_stungun) {
-                if (character_x > 0) {
-                    // Nếu nhân vật chưa chạm biên trái màn hình, cho phép di chuyển
-                    character_x -= MOVE_SPEED;
-                    
-                    // Nếu đang ở chế độ thế giới di chuyển và nhân vật đi lùi về bên trái
-                    // đủ xa (ví dụ như dưới 1/4 màn hình), tắt chế độ thế giới di chuyển
-                    if (game_world_moving && character_x < WINDOW_WIDTH / 4) {
-                        game_world_moving = false;
-                    }
-                }
-            }
 
-            if (moving_right && !hit_by_stungun) {
-                // Nếu nhân vật chưa đến giữa màn hình hoặc đang không ở chế độ thế giới di chuyển
-                if (character_x < WINDOW_WIDTH / 2 && !game_world_moving) {
-                    character_x += MOVE_SPEED;
-                    
-                    // Nếu nhân vật đến giữa màn hình, bật chế độ thế giới di chuyển
-                    if (character_x >= WINDOW_WIDTH / 2) {
-                        game_world_moving = true;
-                    }
-                } 
-                // Nếu đang ở chế độ thế giới di chuyển, cuộn background thay vì di chuyển nhân vật
-                else if (game_world_moving) {
-                    moving_background(MOVE_SPEED, bg1_position_x, bg2_position_x, 
-                                    renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
-                }
-            }
+            // Cập nhật vị trí nhân vật theo vận tốc
+            character_y += velocity_y;
 
-            // Cập nhật vị trí nhân vật khi nhảy
-            if (is_jumping && !hit_by_stungun) {
-                character_y += velocity_y; // Cập nhật vị trí y
-                velocity_y += GRAVITY; // Áp dụng trọng lực
-                
-                if (character_y >= GROUND_LEVEL - CHARACTER_HEIGHT) { // Chạm đất
+            // Giới hạn nhân vật ở trong màn hình và trên mặt đất khi không bay
+            if (!can_fly) {
+                if (character_y >= GROUND_LEVEL - CHARACTER_HEIGHT) {
                     character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
                     is_jumping = false;
                     velocity_y = 0;
                 }
+                 // Giới hạn nhân vật không đi quá mép trên khi không bay (tùy chọn)
+                if (character_y < 0) {
+                    character_y = 0;
+                     if (velocity_y < 0) velocity_y = 0; // Ngăn đi lên tiếp nếu chạm đỉnh
+                }
+            } else { // Khi bay, giới hạn hoàn toàn trong màn hình
+                 if (character_y < 0) {
+                    character_y = 0;
+                    if (velocity_y < 0) velocity_y = 0;
+                }
+                if (character_y > WINDOW_HEIGHT - CHARACTER_HEIGHT) {
+                    character_y = WINDOW_HEIGHT - CHARACTER_HEIGHT;
+                     if (velocity_y > 0) velocity_y = 0;
+                }
             }
 
-            // Giới hạn nhân vật trong màn hình
+
+            // Cập nhật vị trí X của nhân vật dựa trên di chuyển trái/phải
+             if (moving_left) {
+                 character_x -= MOVE_SPEED;
+             }
+             if (moving_right) {
+                 character_x += MOVE_SPEED;
+             }
+
+            // Giới hạn nhân vật trong màn hình theo chiều ngang
             if (character_x < 0) character_x = 0;
             if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH) character_x = WINDOW_WIDTH - CHARACTER_WIDTH;
 
-            // Cập nhật frame animation khi di chuyển
-            if (is_moving && !is_jumping && !hit_by_stungun) {
+
+            // Cập nhật stungun
+            stungun.update();
+
+            // Kiểm tra va chạm stungun
+            if (stungun.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
+                hit_by_stungun = true;
+                game_over = true; // Kết thúc game khi bị stungun bắn trúng
+                game_world_moving = false; // Dừng thế giới game
+                 can_fly = false; // Tắt trạng thái bay khi thua
+                 fly_timer = 0; // Reset timer bay
+            }
+
+            // Cập nhật vật cản
+            // Sửa lỗi: Truyền đúng 2 tham số cho Obstacle::update
+            obstacles.update(game_world_moving, game_world_moving ? BACKGROUND_SCROLL_SPEED : 0);
+
+
+            // Kiểm tra va chạm vật cản
+             if (obstacles.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
+                game_over = true; // Kết thúc game khi va chạm vật cản
+                game_world_moving = false; // Dừng thế giới game
+                 can_fly = false; // Tắt trạng thái bay khi thua
+                 fly_timer = 0; // Reset timer bay
+            }
+
+
+            // --- Logic Power-up ---
+
+            // Logic spawn power-up
+            power_up_spawn_timer++;
+            if (power_up_spawn_timer >= POWER_UP_SPAWN_INTERVAL) {
+                if (rand() % POWER_UP_SPAWN_CHANCE == 0) { // 1/20 cơ hội spawn
+                    PowerUp new_power_up;
+                    new_power_up.rect.w = 150; // Kích thước power-up (điều chỉnh nếu cần)
+                    new_power_up.rect.h = 150; // Kích thước power-up
+                    new_power_up.rect.x = WINDOW_WIDTH; // Spawn ở rìa phải
+                    // Spawn ngẫu nhiên theo chiều dọc, tránh quá sát mép trên/dưới
+                    new_power_up.rect.y = rand() % (WINDOW_HEIGHT - new_power_up.rect.h - 100) + 50;
+                    new_power_up.active = true;
+                    power_ups.push_back(new_power_up);
+                     // cout << "Spawned Power-up at y: " << new_power_up.rect.y << endl; // Debug
+                }
+                power_up_spawn_timer = 0; // Reset timer sau mỗi lần thử spawn
+            }
+
+            // Cập nhật vị trí và kiểm tra va chạm power-up
+            for (auto it = power_ups.begin(); it != power_ups.end(); ) {
+                if (it->active) {
+                     // Di chuyển sang trái cùng tốc độ cuộn background
+                    if (game_world_moving) {
+                        it->rect.x -= BACKGROUND_SCROLL_SPEED;
+                    }
+
+                    // Kiểm tra va chạm với nhân vật
+                     SDL_Rect character_rect_collision = {character_x, character_y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
+                     if (SDL_HasIntersection(&character_rect_collision, &it->rect)) {
+                         can_fly = true; // Kích hoạt trạng thái bay
+                         fly_timer = 0; // Bắt đầu đếm thời gian bay
+                         it->active = false; // Đánh dấu để xóa vật phẩm
+                         // cout << "Collected Power-up! Can Fly: " << can_fly << endl; // Debug
+                     }
+
+                    // Xóa vật phẩm nếu đi ra khỏi màn hình hoặc đã được thu thập
+                    if (it->rect.x + it->rect.w < 0 || !it->active) {
+                        it = power_ups.erase(it);
+                    } else {
+                        ++it;
+                    }
+                } else {
+                     it = power_ups.erase(it); // Xóa nếu đã được đánh dấu là không active
+                }
+            }
+
+
+            // Cập nhật animation nhân vật khi di chuyển (chỉ khi không bay)
+            if (is_moving && !can_fly) {
                 animation_counter++;
                 if (animation_counter >= ANIMATION_SPEED) {
                     animation_counter = 0;
-                    animation_frame = (animation_frame + 1) % 3; // Sử dụng 3 frame (0: default, 1, 2)
+                    animation_frame = (animation_frame + 1) % 2; // Chuyển giữa frame 1 và 2
                 }
-            } else if (!is_moving) {
-                animation_frame = 0; // Reset về frame mặc định khi không di chuyển
-                animation_counter = 0;
+            } else if (!can_fly){
+                 animation_frame = 0; // Về frame đứng yên khi không di chuyển và không bay
             }
-            
-            // Cập nhật vị trí stungun
-            stungun.update();
-            
-            // Cập nhật chướng ngại vật
-            obstacles.update(game_world_moving, MOVE_SPEED);
+
+            // Khi đang bay, animation có thể khác hoặc đứng yên tùy thiết kế game
+            // Hiện tại giữ animation frame cuối cùng trước khi bay hoặc đứng yên ở frame 0
+            if (can_fly) {
+                 // Có thể thêm logic animation riêng cho trạng thái bay ở đây
+                 // Ví dụ: animation_frame = animation_bay;
+                 // is_moving = true; // Có thể coi là luôn di chuyển khi bay
+            }
+
+
+        } else if (hit_by_stungun) {
+            // Logic khi bị stungun bắn trúng (ví dụ: hiệu ứng stunned)
+            stunned_timer++;
+            if (stunned_timer >= 60) { // Ví dụ: bị stunned in 1 second (60 frames)
+                hit_by_stungun = false; // End stunned
+                stunned_timer = 0;
+                // Add other recovery logic here if needed
+            }
+             // The game is still over immediately after being hit, so this stunned logic might not be needed if the game ends right away
+             // If you want the game to end after the stunned effect wears off, you need to adjust the game_over logic
         }
+
 
         // Xóa màn hình
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Màu đen
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-        
-        // Vẽ background
-        SDL_Rect bg_rect1 = {bg1_position_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-        SDL_RenderCopy(renderer, background1, NULL, &bg_rect1);
-        
-        SDL_Rect bg_rect2 = {bg2_position_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-        SDL_RenderCopy(renderer, background2, NULL, &bg_rect2);
-        
-        // Vẽ chướng ngại vật
+
+        // Vẽ background (vẫn dùng texture)
+         moving_background(game_world_moving ? BACKGROUND_SCROLL_SPEED : 0, bg1_position_x, bg2_position_x, renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+
+        // Vẽ stungun (vẫn dùng texture)
+        stungun.render();
+
+        // Vẽ vật cản (vẫn dùng texture)
         obstacles.render();
 
-        // Vẽ nhân vật với animation thích hợp
+        // Vẽ vật phẩm power-up (vẫn dùng texture)
+        if (power_up_texture) {
+             for (const auto& pu : power_ups) {
+                if (pu.active) {
+                    SDL_RenderCopy(renderer, power_up_texture, NULL, &pu.rect);
+                }
+             }
+        }
+
+
+        // Vẽ nhân vật (vẫn dùng texture)
         SDL_Rect character_rect = {character_x, character_y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
-        
-        if (is_jumping) {
-            // Sử dụng hình ảnh nhảy dựa vào hướng
+        SDL_Texture* current_character_texture = nullptr;
+
+        // Chọn texture dựa trên hướng nhìn và trạng thái (nhảy hoặc di chuyển hoặc bay)
+        if (is_jumping && !can_fly) { // Animation nhảy (chỉ khi không bay)
+            current_character_texture = facing_right ? horseman_jump_right : horseman_jump_left;
+        } else if (is_moving && !can_fly) { // Animation di chuyển (chỉ khi không bay)
             if (facing_right) {
-                SDL_RenderCopy(renderer, horseman_jump_right, NULL, &character_rect);
+                current_character_texture = (animation_frame == 0) ? horseman_right_1 : horseman_right_2;
             } else {
-                SDL_RenderCopy(renderer, horseman_jump_left, NULL, &character_rect);
+                current_character_texture = (animation_frame == 0) ? horseman_left_1 : horseman_left_2;
             }
-        } else if (is_moving) {
-            // Sử dụng animation di chuyển
-            if (facing_right) {
-                switch (animation_frame) {
-                    case 0:
-                        SDL_RenderCopy(renderer, horseman_right, NULL, &character_rect);
-                        break;
-                    case 1:
-                        SDL_RenderCopy(renderer, horseman_right_1, NULL, &character_rect);
-                        break;
-                    case 2:
-                        SDL_RenderCopy(renderer, horseman_right_2, NULL, &character_rect);
-                        break;
-                }
-            } else {
-                switch (animation_frame) {
-                    case 0:
-                        SDL_RenderCopy(renderer, horseman_left, NULL, &character_rect);
-                        break;
-                    case 1:
-                        SDL_RenderCopy(renderer, horseman_left_1, NULL, &character_rect);
-                        break;
-                    case 2:
-                        SDL_RenderCopy(renderer, horseman_left_2, NULL, &character_rect);
-                        break;
-                }
-            }
-        } else {
-            // Sử dụng hình ảnh đứng bình thường
-            if (facing_right) {
-                SDL_RenderCopy(renderer, horseman_right, NULL, &character_rect);
-            } else {
-                SDL_RenderCopy(renderer, horseman_left, NULL, &character_rect);
-            }
+        } else if (can_fly) { // Animation khi bay (có thể sử dụng animation riêng hoặc animation đứng yên)
+             current_character_texture = facing_right ? horseman_right : horseman_left; // Ví dụ: dùng animation đứng yên khi bay
+             // Nếu muốn animation bay riêng, thêm texture mới và sử dụng ở đây
         }
-        
-        // Hiệu ứng bị stunned (nhấp nháy)
-        if (hit_by_stungun && (stunned_timer / 5) % 2 == 0) {
-            // Tạo hiệu ứng nhấp nháy bằng cách không vẽ nhân vật ở một số frame
-        } else {
-            // Vẽ nhân vật bình thường
+         else { // Animation đứng yên
+            current_character_texture = facing_right ? horseman_right : horseman_left;
         }
-        
-        // Vẽ stungun
-        stungun.render();
-        
-        // Hiển thị thông báo khi thua cuộc
+
+        // Vẽ nhân vật (trừ khi bị stunned - có thể thêm hiệu ứng nhấp nháy)
+        // if (!hit_by_stungun || stunned_timer % 10 < 5 ) {  // Tạo hiệu ứng nhấp nháy bằng cách không vẽ nhân vật ở một số frame
+             SDL_RenderCopy(renderer, current_character_texture, NULL, &character_rect);
+        // }
+
+
+        // Hiển thị thông báo khi thua cuộc - Chỉ vẽ lớp phủ mờ, bỏ chữ
         if (game_over) {
-            // Có thể tạo một texture chữ "GAME OVER" ở đây
+            // Vẽ lớp phủ mờ
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 192); // Màu đen, mờ đục
             SDL_Rect overlay = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
             SDL_RenderFillRect(renderer, &overlay);
-            
-            // Hiển thị thông báo bằng cách vẽ text (cần thêm SDL_ttf cho phần này)
-            // Hoặc bạn có thể tạo và tải trước một texture "GAME OVER"
-            
-            // Thông báo để khởi động lại
-            // Bạn có thể thêm text "Nhấn R để chơi lại"
         }
 
         // Hiển thị lên màn hình
@@ -455,6 +553,8 @@ int main(int argc, char* argv[]) {
     SDL_DestroyTexture(horseman_jump_left);
     SDL_DestroyTexture(background1);
     SDL_DestroyTexture(background2);
+    if(power_up_texture) SDL_DestroyTexture(power_up_texture); // Giải phóng texture power-up
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();
