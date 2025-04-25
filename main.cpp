@@ -359,16 +359,61 @@ int main(int argc, char* argv[]) {
 
 
             // Cập nhật vị trí X của nhân vật dựa trên di chuyển trái/phải
-             if (moving_left) {
-                 character_x -= MOVE_SPEED;
-             }
-             if (moving_right) {
-                 character_x += MOVE_SPEED;
-             }
+             // In main.cpp:
 
-            // Giới hạn nhân vật trong màn hình theo chiều ngang
-            if (character_x < 0) character_x = 0;
-            if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH) character_x = WINDOW_WIDTH - CHARACTER_WIDTH;
+// Find the section where character movement is updated (around line 294-303):
+// Modify the character movement and background scrolling logic
+
+// Cập nhật vị trí X của nhân vật dựa trên di chuyển trái/phải
+if (moving_left) {
+    // Nếu nhân vật ở nửa bên trái màn hình hoặc ở rìa trái, di chuyển nhân vật
+    if (character_x > 0 && character_x > WINDOW_WIDTH / 2) {
+        character_x -= MOVE_SPEED;
+    } 
+    // Nếu nhân vật ở nửa bên phải và không ở rìa trái, di chuyển background thay vì nhân vật
+    else if (character_x > 0) {
+        bg1_position_x += MOVE_SPEED;
+        bg2_position_x += MOVE_SPEED;
+        // Di chuyển obstacles và power-ups ngược lại để tạo ảo giác nhân vật di chuyển
+        obstacles.moveAllObstacles(MOVE_SPEED);
+        for (auto& pu : power_ups) {
+            if (pu.active) {
+                pu.rect.x += MOVE_SPEED;
+            }
+        }
+    } 
+    // Nếu ở rìa trái, chỉ di chuyển nhân vật
+    else {
+        character_x -= MOVE_SPEED;
+    }
+}
+
+if (moving_right) {
+    // Nếu nhân vật chưa đến nửa màn hình, di chuyển nhân vật
+    if (character_x < WINDOW_WIDTH / 2) {
+        character_x += MOVE_SPEED;
+    } 
+    // Nếu nhân vật ở nửa sau màn hình, di chuyển background thay vì nhân vật
+    else {
+        bg1_position_x -= MOVE_SPEED;
+        bg2_position_x -= MOVE_SPEED;
+        // Di chuyển obstacles và power-ups ngược lại để tạo ảo giác nhân vật di chuyển
+        obstacles.moveAllObstacles(-MOVE_SPEED);
+        for (auto& pu : power_ups) {
+            if (pu.active) {
+                pu.rect.x -= MOVE_SPEED;
+            }
+        }
+    }
+}
+
+// Giới hạn nhân vật trong màn hình theo chiều ngang
+if (character_x < 0) character_x = 0;
+if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH) character_x = WINDOW_WIDTH - CHARACTER_WIDTH;
+
+// Thay đổi cách gọi hàm moving_background
+// Không di chuyển background tự động nữa, chỉ vẽ tại vị trí hiện tại
+moving_background(0, bg1_position_x, bg2_position_x, renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 
             // Cập nhật stungun
@@ -385,7 +430,23 @@ int main(int argc, char* argv[]) {
 
             // Cập nhật vật cản
             // Sửa lỗi: Truyền đúng 2 tham số cho Obstacle::update
-            obstacles.update(game_world_moving, game_world_moving ? BACKGROUND_SCROLL_SPEED : 0);
+         int obstacle_speed = game_world_moving ? BACKGROUND_SCROLL_SPEED : 0;
+obstacles.update(game_world_moving, obstacle_speed);
+
+// Khi di chuyển nhân vật và background bằng keyboard, có thể tính đến tốc độ tăng:
+if (moving_right && character_x >= WINDOW_WIDTH / 2) {
+    // Tính toán offset với tốc độ tăng dần
+    int speed_offset = static_cast<int>(MOVE_SPEED * obstacles.getCurrentSpeedMultiplier());
+    bg1_position_x -= speed_offset;
+    bg2_position_x -= speed_offset;
+    obstacles.moveAllObstacles(-speed_offset);
+    // Di chuyển power-ups
+    for (auto& pu : power_ups) {
+        if (pu.active) {
+            pu.rect.x -= speed_offset;
+        }
+    }
+}
 
 
             // Kiểm tra va chạm vật cản
@@ -420,9 +481,7 @@ int main(int argc, char* argv[]) {
             for (auto it = power_ups.begin(); it != power_ups.end(); ) {
                 if (it->active) {
                      // Di chuyển sang trái cùng tốc độ cuộn background
-                    if (game_world_moving) {
-                        it->rect.x -= BACKGROUND_SCROLL_SPEED;
-                    }
+                    it->rect.x -= BACKGROUND_SCROLL_SPEED;
 
                     // Kiểm tra va chạm với nhân vật
                      SDL_Rect character_rect_collision = {character_x, character_y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
@@ -483,7 +542,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // Vẽ background (vẫn dùng texture)
-         moving_background(game_world_moving ? BACKGROUND_SCROLL_SPEED : 0, bg1_position_x, bg2_position_x, renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
+        moving_background(0, bg1_position_x, bg2_position_x, renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 
         // Vẽ stungun (vẫn dùng texture)

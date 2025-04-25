@@ -27,6 +27,13 @@ private:
     // Mục tiêu (nhân vật) để đuổi theo
     int* target_x;
     int* target_y;
+    // Add to stungun.h in the private section:
+    int last_target_x;          // Last known character x position
+    int last_target_y;          // Last known character y position
+    int idle_timer;             // Timer to track how long character has been idle
+    const int IDLE_THRESHOLD;   // Time threshold before stungun activates
+    const int MOVEMENT_THRESHOLD; // Distance threshold to consider character as "moved"
+    bool is_active;             // Flag to track if stungun is actively chasing
     
     // Renderer
     SDL_Renderer* renderer;
