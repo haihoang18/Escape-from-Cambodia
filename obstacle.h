@@ -20,7 +20,7 @@ private:
     int spawn_interval_bottom;
     std::mt19937 rng;
     std::uniform_int_distribution<int> height_dist;
-    const int OBSTACLE_WIDTH = 150;
+    const int OBSTACLE_WIDTH = 120;
     const int OBSTACLE_HEIGHT = 150;
     const int WINDOW_WIDTH;
     const int WINDOW_HEIGHT;
