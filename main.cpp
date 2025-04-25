@@ -3,9 +3,12 @@
 #include "background.h"
 #include "utils.h"
 #include "stungun.h"
+#include "obstacle.h" // Thêm include mới
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
 #include <iostream>
+#include <cstdlib> // Thêm thư viện này cho rand() và srand()
+#include <ctime>   // Thêm thư viện này cho time()
 
 using namespace std;
 
@@ -27,8 +30,23 @@ const int MOVE_SPEED = 5; // Tốc độ di chuyển nhân vật
 const int ANIMATION_SPEED = 10; // Số frame để chuyển sang frame animation tiếp theo
 
 // Thông số background
-const int BACKGROUND_WIDTH = WINDOW_WIDTH; // Chiều rộng background bằng chiều rộng cửa sổ
-const float BACKGROUND_SCROLL_SPEED = 2; // Tốc độ cuộn background
+const int BACKGROUND_SCROLL_SPEED = 5; // Tốc độ cuộn background
+
+// Biến cho hệ số nhảy ngẫu nhiên
+float jump_multiplier = 1.0f; // Hệ số nhảy ban đầu
+int jumps_with_multiplier = 0; // Số lần nhảy với hệ số hiện tại
+
+// Hàm để tạo hệ số nhảy ngẫu nhiên mới
+float generateRandomJumpMultiplier() {
+    int random_value = rand() % 3; // Sinh số ngẫu nhiên 0, 1, hoặc 2
+    if (random_value == 0) {
+        return 0.5f;
+    } else if (random_value == 1) {
+        return 1.0f;
+    } else {
+        return 2.0f;
+    }
+}
 
 int main(int argc, char* argv[]) {
     // Khởi tạo SDL và SDL_image
@@ -41,6 +59,14 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         return -1;
     }
+
+    // Khởi tạo bộ tạo số ngẫu nhiên
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    // Tạo hệ số nhảy ngẫu nhiên ban đầu
+    jump_multiplier = generateRandomJumpMultiplier();
+
+    // ... (các phần code khởi tạo khác giữ nguyên)
 
     // Tạo cửa sổ và renderer
     SDL_Window* window = SDL_CreateWindow("Game Nhan Vat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -111,7 +137,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Khởi tạo trạng thái nhân vật
-    int character_x = 0; // Vị trí ban đầu giữa màn hình
+    int character_x = WINDOW_WIDTH / 4; // Vị trí ban đầu 1/4 màn hình
     int character_y = GROUND_LEVEL - CHARACTER_HEIGHT; // Đặt trên mặt đất
     int velocity_y = 0; // Vận tốc theo trục y (dùng cho nhảy)
     bool is_jumping = false; // Trạng thái nhảy
@@ -129,17 +155,23 @@ int main(int argc, char* argv[]) {
     // Tạo đối tượng stungun đuổi theo nhân vật
     StunGun stungun(renderer, &character_x, &character_y);
     
-    // Biến kiểm tra va chạm với stungun
+    // Tạo đối tượng chướng ngại vật
+    Obstacle obstacles(renderer, &character_x, &character_y, WINDOW_WIDTH, WINDOW_HEIGHT, GROUND_LEVEL);
+    
+    // Biến kiểm tra va chạm
     bool hit_by_stungun = false;
+    bool game_over = false; // Biến mới cho trạng thái thua
     
     // Đếm thời gian bị stunned
     int stunned_timer = 0;
     const int STUNNED_DURATION = 60; // Khoảng 1 giây ở 60 FPS
 
-    // Biến theo dõi background
-    float bg_pos_x = 0; // Vị trí hiện tại của background
-    bool showing_background1 = true; // Đang hiển thị background1
-    bool transition_complete = false; // Quá trình chuyển đổi đã hoàn thành
+    // Khởi tạo vị trí background
+    int bg1_position_x = 0;
+    int bg2_position_x = WINDOW_WIDTH; // Background 2 bắt đầu nối tiếp background 1
+
+    // Biến kiểm soát game
+    bool game_world_moving = false; // Khi true, thế giới di chuyển thay vì nhân vật
 
     // Vòng lặp chính
     bool running = true;
@@ -149,145 +181,193 @@ int main(int argc, char* argv[]) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
-            } else if (event.type == SDL_KEYDOWN && !hit_by_stungun) {
+            } else if (event.type == SDL_KEYDOWN) { // Chỉ kiểm tra SDL_KEYDOWN
                 switch (event.key.keysym.sym) {
                     case SDLK_LEFT: // Di chuyển sang trái
-                        moving_left = true;
-                        facing_right = false;
-                        is_moving = true;
+                        if (!hit_by_stungun && !game_over) { // Chỉ di chuyển khi không bị stunned hoặc game over
+                            moving_left = true;
+                            facing_right = false;
+                            is_moving = true;
+                        }
                         break;
                     case SDLK_RIGHT: // Di chuyển sang phải
-                        moving_right = true;
-                        facing_right = true;
-                        is_moving = true;
+                        if (!hit_by_stungun && !game_over) { // Chỉ di chuyển khi không bị stunned hoặc game over
+                            moving_right = true;
+                            facing_right = true;
+                            is_moving = true;
+                        }
                         break;
                     case SDLK_UP: // Nhảy
-                        if (!is_jumping) {
-                            velocity_y = JUMP_VELOCITY;
+                        if (!is_jumping && !hit_by_stungun && !game_over) { // Chỉ nhảy khi không đang nhảy, không bị stunned hoặc game over
+                            velocity_y = JUMP_VELOCITY; // Sử dụng JUMP_VELOCITY gốc ở đây, hệ số nhảy được xử lý sau trong logic game
                             is_jumping = true;
+
+                            // Logic cho hệ số nhảy ngẫu nhiên cần được di chuyển xuống sau khi tính toán velocity_y
+                            // (hoặc áp dụng hệ số ngay tại đây)
+                            // Áp dụng hệ số nhảy ngay khi nhấn phím UP
+                            velocity_y = JUMP_VELOCITY * jump_multiplier;
+
+                            // Cập nhật bộ đếm số lần nhảy với hệ số hiện tại
+                            jumps_with_multiplier++;
+
+                            // Nếu đã nhảy 2 lần với hệ số này, tạo hệ số mới và reset bộ đếm
+                            if (jumps_with_multiplier >= 2) {
+                                jump_multiplier = generateRandomJumpMultiplier();
+                                jumps_with_multiplier = 0;
+                            }
+                        }
+                        break;
+                    case SDLK_r: // Phím tắt để khởi động lại game khi thua
+                        if (game_over) {
+                            // Reset trạng thái game
+                            game_over = false;
+                            character_x = WINDOW_WIDTH / 4;
+                            character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
+                            velocity_y = 0;
+                            is_jumping = false;
+                            facing_right = true;
+                            is_moving = false;
+                            moving_left = false;
+                            moving_right = false;
+                            hit_by_stungun = false;
+                            stunned_timer = 0;
+                            bg1_position_x = 0;
+                            bg2_position_x = WINDOW_WIDTH;
+                            game_world_moving = false;
+                            animation_frame = 0;
+                            animation_counter = 0;
+
+                            // Reset các đối tượng trong game
+                            stungun.resetAfterCollision();
+                            obstacles.reset();
+
+                             // Reset lại hệ số nhảy và bộ đếm khi game restart
+                            jump_multiplier = generateRandomJumpMultiplier();
+                            jumps_with_multiplier = 0;
                         }
                         break;
                 }
             } else if (event.type == SDL_KEYUP) {
-                switch (event.key.keysym.sym) {
+               // ... xử lý KEYUP (đảm bảo các điều kiện !hit_by_stungun && !game_over cũng được thêm vào đây nếu cần ngăn dừng di chuyển khi game over)
+               switch (event.key.keysym.sym) {
                     case SDLK_LEFT:
-                        moving_left = false;
-                        if (!moving_right) is_moving = false;
+                        if (!hit_by_stungun && !game_over) {
+                            moving_left = false;
+                            if (!moving_right) is_moving = false;
+                        }
                         break;
                     case SDLK_RIGHT:
-                        moving_right = false;
-                        if (!moving_left) is_moving = false;
+                         if (!hit_by_stungun && !game_over) {
+                            moving_right = false;
+                            if (!moving_left) is_moving = false;
+                        }
                         break;
                 }
             }
         }
         
-        // Kiểm tra va chạm với stungun
-        if (!hit_by_stungun && stungun.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
-            hit_by_stungun = true;
-            stungun.resetAfterCollision(); // Đặt lại vị trí stungun sau khi va chạm
-        }
-
-        // Xử lý thời gian stunned
-        if (hit_by_stungun) {
-            stunned_timer++;
-            if (stunned_timer >= STUNNED_DURATION) {
-                hit_by_stungun = false;
-                stunned_timer = 0;
-                // Đảm bảo stungun được đặt lại vị trí nếu chưa được làm trước đó
-                stungun.resetAfterCollision();
+        if (!game_over) {
+            // Kiểm tra va chạm với stungun
+            if (!hit_by_stungun && stungun.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
+                hit_by_stungun = true;
+                stungun.resetAfterCollision(); // Đặt lại vị trí stungun sau khi va chạm
             }
-        }
-        
-        // Xử lý di chuyển (cả khi đứng yên và khi nhảy)
-        if (moving_left && !hit_by_stungun) {
-            character_x -= MOVE_SPEED;
+
+            // Xử lý thời gian stunned
+            if (hit_by_stungun) {
+                stunned_timer++;
+                if (stunned_timer >= STUNNED_DURATION) {
+                    hit_by_stungun = false;
+                    stunned_timer = 0;
+                    // Đảm bảo stungun được đặt lại vị trí nếu chưa được làm trước đó
+                    stungun.resetAfterCollision();
+                }
+            }
             
-            // Chỉ cuộn background khi nhân vật ở gần rìa trái
-            if (character_x < WINDOW_WIDTH / 4 && bg_pos_x < 0) {
-                bg_pos_x += BACKGROUND_SCROLL_SPEED;
-                character_x += BACKGROUND_SCROLL_SPEED; // Giữ nhân vật ở vị trí tương đối
+            // Kiểm tra va chạm với chướng ngại vật
+            if (obstacles.isColliding(CHARACTER_WIDTH, CHARACTER_HEIGHT)) {
+                game_over = true; // Khi va chạm với chướng ngại vật, game kết thúc
             }
-        }
-        if (moving_right && !hit_by_stungun) {
-    // Nếu vẫn đang ở background1 và chưa đến ranh giới
-    if (showing_background1) {
-        character_x += MOVE_SPEED;
-        
-        // Khi gần đến ranh giới background1 và background2
-        if (character_x > WINDOW_WIDTH * 3/4 && bg_pos_x > -BACKGROUND_WIDTH) {
-            // Cuộn background thay vì di chuyển nhân vật
-            bg_pos_x -= BACKGROUND_SCROLL_SPEED;
-            character_x -= BACKGROUND_SCROLL_SPEED; // Giữ nhân vật ở vị trí tương đối
-        }
-        
-        // Khi đến ranh giới background1 và background2
-        if (bg_pos_x <= -BACKGROUND_WIDTH + CHARACTER_WIDTH + 50) { // Thêm một chút khoảng cách
-            // Chuyển sang background2
-            showing_background1 = false;
-            bg_pos_x = 0; // Reset vị trí background
-            character_x = 50; // Đặt nhân vật ở đầu background2 (thêm một chút khoảng cách)
-        }
-    } else {
-        // Đã ở background2, cho phép di chuyển bình thường
-        character_x += MOVE_SPEED;
-        
-        // Giới hạn không cho di chuyển quá ranh giới bên phải của background2
-        if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH - 50) {
-            character_x = WINDOW_WIDTH - CHARACTER_WIDTH - 50;
-        }
-    }
-}
-
-        // Cập nhật vị trí nhân vật khi nhảy
-        if (is_jumping && !hit_by_stungun) {
-            character_y += velocity_y; // Cập nhật vị trí y
-            velocity_y += GRAVITY; // Áp dụng trọng lực
             
-            if (character_y >= GROUND_LEVEL - CHARACTER_HEIGHT) { // Chạm đất
-                character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
-                is_jumping = false;
-                velocity_y = 0;
+            // Xử lý di chuyển nhân vật
+            if (moving_left && !hit_by_stungun) {
+                if (character_x > 0) {
+                    // Nếu nhân vật chưa chạm biên trái màn hình, cho phép di chuyển
+                    character_x -= MOVE_SPEED;
+                    
+                    // Nếu đang ở chế độ thế giới di chuyển và nhân vật đi lùi về bên trái
+                    // đủ xa (ví dụ như dưới 1/4 màn hình), tắt chế độ thế giới di chuyển
+                    if (game_world_moving && character_x < WINDOW_WIDTH / 4) {
+                        game_world_moving = false;
+                    }
+                }
             }
-        }
 
-        // Giới hạn nhân vật trong màn hình
-        if (character_x < 0) character_x = 0;
-        if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH) character_x = WINDOW_WIDTH - CHARACTER_WIDTH;
+            if (moving_right && !hit_by_stungun) {
+                // Nếu nhân vật chưa đến giữa màn hình hoặc đang không ở chế độ thế giới di chuyển
+                if (character_x < WINDOW_WIDTH / 2 && !game_world_moving) {
+                    character_x += MOVE_SPEED;
+                    
+                    // Nếu nhân vật đến giữa màn hình, bật chế độ thế giới di chuyển
+                    if (character_x >= WINDOW_WIDTH / 2) {
+                        game_world_moving = true;
+                    }
+                } 
+                // Nếu đang ở chế độ thế giới di chuyển, cuộn background thay vì di chuyển nhân vật
+                else if (game_world_moving) {
+                    moving_background(MOVE_SPEED, bg1_position_x, bg2_position_x, 
+                                    renderer, background1, background2, WINDOW_WIDTH, WINDOW_HEIGHT);
+                }
+            }
 
-        // Cập nhật frame animation khi di chuyển
-        if (is_moving && !is_jumping && !hit_by_stungun) {
-            animation_counter++;
-            if (animation_counter >= ANIMATION_SPEED) {
+            // Cập nhật vị trí nhân vật khi nhảy
+            if (is_jumping && !hit_by_stungun) {
+                character_y += velocity_y; // Cập nhật vị trí y
+                velocity_y += GRAVITY; // Áp dụng trọng lực
+                
+                if (character_y >= GROUND_LEVEL - CHARACTER_HEIGHT) { // Chạm đất
+                    character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
+                    is_jumping = false;
+                    velocity_y = 0;
+                }
+            }
+
+            // Giới hạn nhân vật trong màn hình
+            if (character_x < 0) character_x = 0;
+            if (character_x > WINDOW_WIDTH - CHARACTER_WIDTH) character_x = WINDOW_WIDTH - CHARACTER_WIDTH;
+
+            // Cập nhật frame animation khi di chuyển
+            if (is_moving && !is_jumping && !hit_by_stungun) {
+                animation_counter++;
+                if (animation_counter >= ANIMATION_SPEED) {
+                    animation_counter = 0;
+                    animation_frame = (animation_frame + 1) % 3; // Sử dụng 3 frame (0: default, 1, 2)
+                }
+            } else if (!is_moving) {
+                animation_frame = 0; // Reset về frame mặc định khi không di chuyển
                 animation_counter = 0;
-                animation_frame = (animation_frame + 1) % 3; // Sử dụng 3 frame (0: default, 1, 2)
             }
-        } else if (!is_moving) {
-            animation_frame = 0; // Reset về frame mặc định khi không di chuyển
-            animation_counter = 0;
+            
+            // Cập nhật vị trí stungun
+            stungun.update();
+            
+            // Cập nhật chướng ngại vật
+            obstacles.update(game_world_moving, MOVE_SPEED);
         }
+
+        // Xóa màn hình
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Màu đen
+        SDL_RenderClear(renderer);
         
-        // Cập nhật vị trí stungun
-        stungun.update();
-
-       // Xóa màn hình
-SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Màu đen
-SDL_RenderClear(renderer);
-
-// Vẽ background
-if (showing_background1) {
-    // Vẽ background1 ở vị trí hiện tại
-    SDL_Rect bg_rect1 = {(int)bg_pos_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-    SDL_RenderCopy(renderer, background1, NULL, &bg_rect1);
-    
-    // Vẽ background2 ngay sau background1
-    SDL_Rect bg_rect2 = {(int)bg_pos_x + BACKGROUND_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-    SDL_RenderCopy(renderer, background2, NULL, &bg_rect2);
-} else {
-    // Chỉ vẽ background2 khi đã chuyển sang
-    SDL_Rect bg_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-    SDL_RenderCopy(renderer, background2, NULL, &bg_rect);
-}
+        // Vẽ background
+        SDL_Rect bg_rect1 = {bg1_position_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        SDL_RenderCopy(renderer, background1, NULL, &bg_rect1);
+        
+        SDL_Rect bg_rect2 = {bg2_position_x, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        SDL_RenderCopy(renderer, background2, NULL, &bg_rect2);
+        
+        // Vẽ chướng ngại vật
+        obstacles.render();
 
         // Vẽ nhân vật với animation thích hợp
         SDL_Rect character_rect = {character_x, character_y, CHARACTER_WIDTH, CHARACTER_HEIGHT};
@@ -344,6 +424,20 @@ if (showing_background1) {
         
         // Vẽ stungun
         stungun.render();
+        
+        // Hiển thị thông báo khi thua cuộc
+        if (game_over) {
+            // Có thể tạo một texture chữ "GAME OVER" ở đây
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 192); // Màu đen, mờ đục
+            SDL_Rect overlay = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+            SDL_RenderFillRect(renderer, &overlay);
+            
+            // Hiển thị thông báo bằng cách vẽ text (cần thêm SDL_ttf cho phần này)
+            // Hoặc bạn có thể tạo và tải trước một texture "GAME OVER"
+            
+            // Thông báo để khởi động lại
+            // Bạn có thể thêm text "Nhấn R để chơi lại"
+        }
 
         // Hiển thị lên màn hình
         SDL_RenderPresent(renderer);

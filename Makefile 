@@ -1,1 +1,1 @@
-/usr/bin/clang++ -std=c++14 -g main.cpp background.cpp utils.cpp stungun.cpp -o game -F/Library/Frameworks -framework SDL2 -framework SDL2_image -rpath /Library/Frameworks
+/usr/bin/clang++ -std=c++14 -g main.cpp background.cpp obstacle.cpp utils.cpp stungun.cpp -o game -F/Library/Frameworks -framework SDL2 -framework SDL2_image -rpath /Library/Frameworks
