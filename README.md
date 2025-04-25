@@ -6,7 +6,9 @@
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
     
     Được đánh giá: Messi / 10 bởi người hâm mộ
+    
     GIỚI THIỆU GAME
+
 1. Nội dung
 - Chạy để không bị chích điện ᯓ🏃‍➡️
 - Nhảy để tránh địch
@@ -29,7 +31,7 @@
     *   1 lực gốc
     *   2 lực gốc
 - Nhặt bụi tiên sẽ bay được 💨
-- KHi di chuyển quá chậm sẽ bị súng điện đuổi kịp 🔌⚡💥😵
+- Khi di chuyển quá chậm sẽ bị súng điện đuổi kịp 🔌⚡💥😵
 
 5. Về đồ họa của game
 - Nhân vật chính: Death road to Canada, chỉnh sửa lại bằng piskel
@@ -47,4 +49,5 @@
 
 
 Tác giả: Hà Hải Hoàng
+
 Support: Dàn hậu cung AI của Hoàng 
