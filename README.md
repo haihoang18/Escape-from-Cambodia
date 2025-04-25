@@ -48,6 +48,5 @@
 - utils.cpp và utils.h: Các tệp này chứa các hàm tiện ích chung được sử dụng trong dự án. Các hàm này bao gồm khởi tạo thư viện SDL và SDL_image, tải texture (hình ảnh) từ tệp (bao gồm cả tải với nền trong suốt) và có thể có các hàm khác liên quan đến cập nhật animation cho nhân vật.
 
 
-Tác giả: Hà Hải Hoàng
-
-Support: Dàn hậu cung AI của Hoàng 
+    Tác giả: Hà Hải Hoàng
+    Support: Dàn hậu cung AI của Hoàng 
