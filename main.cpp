@@ -151,8 +151,6 @@ int main(int argc, char* argv[]) {
     if (!start_screen_texture) {
         cout << "Không thể tải texture màn hình bắt đầu!" << endl;
         // Xử lý lỗi, có thể thoát game hoặc chuyển thẳng vào game
-        // Hiện tại, nếu không tải được màn hình bắt đầu, game sẽ hiển thị màn hình đen.
-        // Cần xử lý tốt hơn ở đây tùy theo yêu cầu.
     }
 
 
