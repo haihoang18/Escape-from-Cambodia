@@ -7,11 +7,14 @@
 - Hidetaka Miyazaki (cha đẻ Elden Ring): Sau khi chơi game này, tôi cảm thấy hổ thẹn về tác phẩm của mình 😭, nếu game này ra sớm vài năm, Elden Ring có lẽ đã mất giải Game of the year.
 
 - Rolnado: Người sáng tạo ra game này mới thực sự là GOAT, i love you, you're my idol. 💋💋💋
+
 ![image alt](https://i.dailymail.co.uk/i/pix/2013/04/07/article-2305091-19235309000005DC-601_1024x615_large.jpg)
 
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
 
-- ChatGPT: ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/acc0bad3d21e8239c2790b1eaf8a879cc77cd148/IMG_3634%202.JPG)
+- ChatGPT: 
+
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/acc0bad3d21e8239c2790b1eaf8a879cc77cd148/IMG_3634%202.JPG)
     
     9 / 10 nha sĩ khuyên dùng 👍.
 
@@ -29,21 +32,28 @@
 
 2. Các đối tượng trong game
 - Nhân vật chính 
+
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/character/horseman_jump_right.png)
 - Địch
+
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/background/tungtungtungsahur.png)
 - Bụi tiên
+
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/background/bui_tien.png)
 - Súng điện
+
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/stungun/stungun_2.png)
 
 3. Hướng dẫn chơi
 - Màn hình start:
+
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/f48d33720daf2665784fe68f54724f0e73231343/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.19.59.png)
 
 - Trạng thái bình thường: dùng space để nhảy, các nút mũi tên phải, trái để di chuyển.
 
 - Trạng thái hít bụi tiên: dùng tất cả các nút mũi tên để di chuyển tự do trong background, không chịu tác dụng của trọng lực.
+
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/4d0ac287b61200b78c45256c35860306764cb995/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.35.50.png)
 
 4. Cơ chế
 - Nhân vật chính chạm vào địch, súng điện là thua game 👎👎👎
