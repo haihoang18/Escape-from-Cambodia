@@ -47,20 +47,31 @@
 
 4. Cơ chế
 - Nhân vật chính chạm vào địch, súng điện là thua game 👎👎👎
+
 - Địch sẽ xuất hiện cả bên dưới và bên trên màn hình 
+
 - Sau mỗi 2 lần nhảy sẽ random lực nhảy, có 3 trường hợp:
     * 0,5 lực gốc
     *   1 lực gốc
     *   2 lực gốc
+
 - Nhặt bụi tiên sẽ bay được 💨
+
 - Khi di chuyển quá chậm sẽ bị súng điện đuổi kịp 🔌⚡💥😵
+
+- Phải nhảy lên thì súng điện mới biến mất
 
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/f48d33720daf2665784fe68f54724f0e73231343/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.20.13.png)
 5. Về đồ họa của game
+
 - Nhân vật chính: Death road to Canada, chỉnh sửa lại bằng piskel.
+
 - Địch: Tung tung tung sahur.
+
 - Background: Sora.
+
 - Animation: sử dụng piskel.
+
 - Súng điện, bụi tiên: tạo bằng PixelMe.
 
 6. Code
