@@ -76,7 +76,7 @@
 
     *   2 lực gốc
 
-![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/a455161d392621f2fe49b0091fc76dad1f74bb1a/pic/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.55.23.png)
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/b8930dbb41ab7fc7d1755c445c23a51b2a8335e8/pic/high_jump.png)
 
 - Nhặt bụi tiên sẽ bay được 💨
 
