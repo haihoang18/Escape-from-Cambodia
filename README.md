@@ -1,7 +1,7 @@
     MỘT VÀI NHẬN XÉT CỦA NHỮNG NGƯỜI TRẢI NGHIỆM 🐧:
-- Ubisoft: Đây đúng là một kiệt tác, chúng tôi muốn mua game của bạn, 1 tỉ đô đủ không ?
-- Microsoft: Hãy về làm cho chúng tôi, we need you.
-- Hidetaka Miyazaki (cha đẻ Elden Ring): Sau khi chơi game này, tôi cảm thấy hổ thẹn về tác phẩm của mình, nếu game này ra sớm vài năm, Elden Ring sẽ mất giải Game of the year.
+- Ubisoft: Đây đúng là một kiệt tác 🤌✨ ✨ , chúng tôi muốn mua lại game của bạn, 1 tỉ $ đủ không ?
+- Microsoft: Hãy về làm cho chúng tôi, we need you. 🙏🙏🙏
+- Hidetaka Miyazaki (cha đẻ Elden Ring): Sau khi chơi game này, tôi cảm thấy hổ thẹn về tác phẩm của mình 😭, nếu game này ra sớm vài năm, Elden Ring có lẽ đã mất giải Game of the year.
 - Rolnado: Người sáng tạo ra game này mới thực sự là GOAT, i love you, you're my idol. 💋💋💋
 ![image alt](https://i.dailymail.co.uk/i/pix/2013/04/07/article-2305091-19235309000005DC-601_1024x615_large.jpg)
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
@@ -11,8 +11,8 @@
     GIỚI THIỆU GAME
 
 1. Nội dung
-- Chạy để không bị chích điện ᯓ🏃‍➡️
-- Nhảy để tránh địch
+- Chạy để không bị chích điện. ᯓ🏃‍➡️
+- Nhảy kết hợp di chuyển để tránh địch.
 
 2. Các đối tượng trong game
 - Nhân vật chính 
@@ -26,7 +26,7 @@
 
 3. Hướng dẫn chơi
 - Trạng thái bình thường: dùng space để nhảy, các nút mũi tên phải, trái để di chuyển.
-- Trạng thái hít bụi tiên: dùng tất cả các nút mũi tên để di chuyển tự do trong background, không chịu tác dụng của trọng lực
+- Trạng thái hít bụi tiên: dùng tất cả các nút mũi tên để di chuyển tự do trong background, không chịu tác dụng của trọng lực.
 
 4. Cơ chế
 - Nhân vật chính chạm vào địch, súng điện là thua game 👎👎👎
