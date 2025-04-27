@@ -52,3 +52,4 @@
 - utils.cpp và utils.h: Các tệp này chứa các hàm tiện ích chung được sử dụng trong dự án. Các hàm này bao gồm khởi tạo thư viện SDL và SDL_image, tải texture (hình ảnh) từ tệp (bao gồm cả tải với nền trong suốt) và có thể có các hàm khác liên quan đến cập nhật animation cho nhân vật.
 Google Drive: https://drive.google.com/file/d/1QfriavwrbZT8mvmzOxZjqquefHW2JwJp/view?usp=share_link
 
+![image alt] (https://github.com/haihoang18/Escape-from-Cambodia/blob/78fe809e68653bd736666de89678feb1cee31789/background/background1.png)
