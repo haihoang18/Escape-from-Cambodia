@@ -14,10 +14,14 @@
 - Nhảy để tránh địch
 
 2. Các đối tượng trong game
-- Nhân vật chính (character/horseman_right.png)
+- Nhân vật chính 
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/character/horseman_jump_right.png)
 - Địch
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/background/tungtungtungsahur.png)
 - Bụi tiên
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/background/bui_tien.png)
 - Súng điện
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/stungun/stungun_2.png)
 
 3. Hướng dẫn chơi
 - Trạng thái bình thường: dùng space để nhảy, các nút mũi tên phải, trái để di chuyển.
@@ -36,7 +40,7 @@
 5. Về đồ họa của game
 - Nhân vật chính: Death road to Canada, chỉnh sửa lại bằng piskel
 - Địch: Tung tung tung sahur
-- Map: Sora
+- Background: Sora
 - Animation: sử dụng bằng piskel
 - Súng điện, bụi tiên: tạo bằng PixelMe
 
