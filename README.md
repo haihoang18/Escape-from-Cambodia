@@ -11,7 +11,7 @@
 
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
 
-- ChatGPT: ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/41e0a0d4c64b5463c4fc7fef6325f129d124bee0/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2021.42.55.png)
+- ChatGPT: ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/issues/1#issue-3023159844)
     9 / 10 nha sĩ khuyên dùng 👍.
 
     Được đánh giá: Messi / 10 bởi người hâm mộ
