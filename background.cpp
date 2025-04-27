@@ -10,9 +10,6 @@ void moving_background(int speed, int& bg1_position_x, int& bg2_position_x,
                       SDL_Renderer* renderer, SDL_Texture* background1, 
                       SDL_Texture* background2, const int WINDOW_WIDTH, 
                       const int WINDOW_HEIGHT) {
-    // Update background positions
-    bg1_position_x -= speed;
-    bg2_position_x -= speed;
 
     // Reset positions when a background moves completely off-screen
     if (bg1_position_x <= -WINDOW_WIDTH) bg1_position_x = bg2_position_x + WINDOW_WIDTH;

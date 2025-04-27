@@ -10,7 +10,7 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <cmath> // Thêm thư viện cmath cho sqrt nếu cần trong các file khác, mặc dù main không dùng trực tiếp
+#include <cmath> 
 
 using namespace std;
 
@@ -23,7 +23,7 @@ const int CHARACTER_WIDTH = 125;
 const int CHARACTER_HEIGHT = 125;
 
 // Thông số game
-const int GROUND_LEVEL = WINDOW_HEIGHT - 100; // Mặt đất cách đáy 100 pixel
+const int GROUND_LEVEL = WINDOW_HEIGHT - 50; // Mặt đất cách đáy 50 pixel
 const int JUMP_VELOCITY = -25; // Tốc độ nhảy ban đầu (âm để đi lên)
 const int GRAVITY = 1; // Gia tốc trọng trường
 const int MOVE_SPEED = 5; // Tốc độ di chuyển nhân vật
@@ -35,7 +35,7 @@ const int ANIMATION_SPEED = 10; // Số frame để chuyển sang frame animatio
 const int BACKGROUND_SCROLL_SPEED = 5; // Tốc độ cuộn background
 
 
-// Cấu trúc cho vật phẩm Power-up
+// Cấu trúc cho bụi tiên
 struct PowerUp {
     SDL_Rect rect;
     bool active; // Cờ để kiểm tra vật phẩm có đang hoạt động không
@@ -53,12 +53,12 @@ std::vector<PowerUp> power_ups;
 bool can_fly = false;
 // Bộ đếm thời gian bay
 int fly_timer = 0;
-const int FLY_DURATION_FRAMES = 5 * 60; // Thời gian bay 5 giây ở 60 FPS (giả sử 60 FPS)
+const int FLY_DURATION_FRAMES = 5 * 60; // Thời gian bay 5 giây ở 60 FPS 
 
 // Thông số spawn vật phẩm
 int power_up_spawn_timer = 0;
-const int POWER_UP_SPAWN_INTERVAL = 300; // Khoảng thời gian tối thiểu giữa các lần thử spawn (ví dụ: 5 giây ở 60 FPS)
-const int POWER_UP_SPAWN_CHANCE = 10; // Tỷ lệ 1/20 để spawn khi timer đạt ngưỡng
+const int POWER_UP_SPAWN_INTERVAL = 120; // Khoảng thời gian tối thiểu giữa các lần thử spawn 
+const int POWER_UP_SPAWN_CHANCE = 5; 
 
 // Định nghĩa các trạng thái game
 enum GameState {
@@ -75,7 +75,7 @@ SDL_Texture* start_screen_texture = nullptr;
 
 // Định nghĩa vùng cho nút START trên màn hình bắt đầu (Ước lượng dựa trên ảnh)
 SDL_Rect start_button_rect = {
-    WINDOW_WIDTH / 2 - 175, // Ước lượng vị trí x (căn giữa)
+    WINDOW_WIDTH / 2 - 175, // Ước lượng vị trí x 
     WINDOW_HEIGHT - 250,   // Ước lượng vị trí y
     350,                   // Ước lượng chiều rộng
     100                    // Ước lượng chiều cao
@@ -84,7 +84,7 @@ SDL_Rect start_button_rect = {
 
 // Hàm để tạo hệ số nhảy ngẫu nhiên mới
 float generateRandomJumpMultiplier() {
-    int random_value = rand() % 3; // Sinh số ngẫu nhiên 0, 1, hoặc 2
+    int random_value = rand() % 3; 
     if (random_value == 0) {
         return 0.5f;
     } else if (random_value == 1) {
@@ -94,7 +94,7 @@ float generateRandomJumpMultiplier() {
     }
 }
 
-// Hàm load texture (giữ lại vì vẫn dùng texture cho các đối tượng khác)
+// Hàm load texture 
 SDL_Texture* load_texture(SDL_Renderer* renderer, const string& file_path) {
     SDL_Texture* newTexture = nullptr;
     SDL_Surface* loadedSurface = IMG_Load(file_path.c_str());
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     start_screen_texture = load_texture(renderer, "background/start.png");
     if (!start_screen_texture) {
         cout << "Không thể tải texture màn hình bắt đầu!" << endl;
-        // Xử lý lỗi, có thể thoát game hoặc chuyển thẳng vào game
+
     }
 
 
@@ -158,10 +158,10 @@ int main(int argc, char* argv[]) {
     power_up_texture = load_texture(renderer, "background/bui_tien.png");
     if (!power_up_texture) {
         cout << "Không thể tải texture vật phẩm power-up!" << endl;
-        // Tiếp tục game mà không có power-up hoặc thoát tùy ý
+       
     }
 
-    // Tải các texture nhân vật (giữ lại)
+    // Tải các texture nhân vật 
     SDL_Texture* horseman_right = load_texture(renderer, "character/horseman_right.png");
     SDL_Texture* horseman_left = load_texture(renderer, "character/horseman_left.png");
      SDL_Texture* horseman_right_1 = load_texture(renderer, "character/horseman_right_1.png");
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
      }
 
 
-    // Khởi tạo vị trí nhân vật (đặt lại khi bắt đầu chơi)
+    // Khởi tạo vị trí nhân vật 
     int character_x = WINDOW_WIDTH / 4;
     int character_y = GROUND_LEVEL - CHARACTER_HEIGHT;
     int velocity_y = 0;
@@ -196,13 +196,13 @@ int main(int argc, char* argv[]) {
     int stunned_timer = 0; // Bộ đếm thời gian bị stunned
 
     // Khởi tạo stungun (đặt lại khi bắt đầu chơi)
-    StunGun stungun(renderer, &character_x, &character_y);
+    StunGun stungun(renderer, &character_x, &character_y, &is_jumping);
 
     // Khởi tạo vật cản (đặt lại khi bắt đầu chơi)
     Obstacle obstacles(renderer, &character_x, &character_y, WINDOW_WIDTH, WINDOW_HEIGHT, GROUND_LEVEL);
 
 
-    // Khởi tạo background (giữ lại texture, đặt lại vị trí khi bắt đầu chơi)
+    // Khởi tạo background 
     SDL_Texture* background1 = load_texture(renderer, "background/background1.png");
     SDL_Texture* background2 = load_texture(renderer, "background/background2.png");
      if (!background1 || !background2) {
@@ -391,7 +391,7 @@ int main(int argc, char* argv[]) {
             if (start_screen_texture) {
                 SDL_RenderCopy(renderer, start_screen_texture, NULL, NULL); // Vẽ full màn hình
             }
-            // Có thể vẽ thêm nút START rõ ràng hơn nếu muốn, nhưng hiện tại chỉ dựa vào ảnh nền
+           
         } else if (current_state == PLAYING) {
             // Cập nhật logic game
             if (!hit_by_stungun) {
@@ -525,12 +525,12 @@ int main(int argc, char* argv[]) {
                 }
 
 
-                // --- Logic Power-up ---
+                // Logic bụi tiên
 
                 // Logic spawn power-up
                 power_up_spawn_timer++;
                 if (power_up_spawn_timer >= POWER_UP_SPAWN_INTERVAL) {
-                    if (rand() % POWER_UP_SPAWN_CHANCE == 0) { // 1/20 cơ hội spawn
+                    if (rand() % POWER_UP_SPAWN_CHANCE == 0) { // 1/5 cơ hội spawn
                         PowerUp new_power_up;
                         new_power_up.rect.w = 150; // Kích thước power-up (điều chỉnh nếu cần)
                         new_power_up.rect.h = 150; // Kích thước power-up
@@ -580,13 +580,7 @@ int main(int argc, char* argv[]) {
                      animation_frame = 0; // Về frame đứng yên khi không di chuyển và không bay
                 }
 
-                // Khi đang bay, animation có thể khác hoặc đứng yên tùy thiết kế game
-                // Hiện tại giữ animation frame cuối cùng trước khi bay hoặc đứng yên ở frame 0
-                if (can_fly) {
-                     // Có thể thêm logic animation riêng cho trạng thái bay ở đây
-                     // Ví dụ: animation_frame = animation_bay;
-                     // is_moving = true; // Có thể coi là luôn di chuyển khi bay
-                }
+             
             } else { // Logic khi bị stungun bắn trúng (hiện tại game kết thúc ngay)
                  stunned_timer++;
                  if (stunned_timer >= 60) { // Ví dụ: bị stunned trong 1 giây (60 frames)

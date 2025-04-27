@@ -4,25 +4,25 @@
 #include <random>
 #include <ctime>
 #include <SDL2_image/SDL_image.h>
-#include <algorithm> // Required for std::remove_if
+#include <algorithm> 
 
 Obstacle::Obstacle(SDL_Renderer* renderer, int* char_x, int* char_y, int window_width, int window_height, int ground_level)
     : renderer(renderer), character_x_ptr(char_x), character_y_ptr(char_y),
       WINDOW_WIDTH(window_width), WINDOW_HEIGHT(window_height), GROUND_LEVEL(ground_level) {
     
-    // Khởi tạo texture vật cản (code hiện tại của bạn)
+    // Khởi tạo texture vật cản 
     texture = IMG_LoadTexture(renderer, "background/tungtungtungsahur.png");
     if (!texture) {
         std::cout << "Không thể tải texture vật cản! SDL_image Error: " << IMG_GetError() << std::endl;
     }
     
-    // Khởi tạo các timer và interval cho vật cản (code hiện tại của bạn)
+    // Khởi tạo các timer và interval cho vật cản
     spawn_timer_top = 0;
     spawn_interval_top = 180; // 3 giây ở 60 FPS
     spawn_timer_bottom = 0;
     spawn_interval_bottom = 300; // 5 giây ở 60 FPS
     
-    // Cài đặt generator số ngẫu nhiên (code hiện tại của bạn)
+    // Cài đặt generator số ngẫu nhiên
     rng.seed(static_cast<unsigned int>(std::time(nullptr)));
     height_dist = std::uniform_int_distribution<int>(100, 300); // Phạm vi chiều cao ngẫu nhiên
     
@@ -48,12 +48,12 @@ void Obstacle::update(bool world_moving, int scroll_speed) {
             obstacle_speed_multiplier += SPEED_INCREASE_FACTOR;
             // Giới hạn tốc độ tối đa
             if (obstacle_speed_multiplier > MAX_SPEED_MULTIPLIER) {
-                obstacle_speed_multiplier = MAX_SPEED_MULTIPLIER;
+                obstacle_speed_multiplier = MAX_SPEED_MULTIPLIER; // Tốc độ tối đa : 3 lần lúc đầu
             }
         }
     }
     
-    // Cập nhật vị trí các vật cản hiện có (code hiện tại của bạn, thêm hệ số tốc độ)
+    // Cập nhật vị trí các vật cản hiện có 
     auto it = obstacles.begin();
     while (it != obstacles.end()) {
         if (world_moving) {
@@ -69,7 +69,7 @@ void Obstacle::update(bool world_moving, int scroll_speed) {
         }
     }
     
-    // Cập nhật timer và spawn vật cản (code hiện tại của bạn, thêm logic thay đổi interval)
+    // Cập nhật timer và spawn vật cản 
     spawn_timer_top++;
     if (spawn_timer_top >= spawn_interval_top) {
         spawn_timer_top = 0;
@@ -97,7 +97,7 @@ void Obstacle::render() {
         // Determine flip based on y position (top or bottom)
         SDL_RendererFlip flip = SDL_FLIP_NONE;
         // Assuming top obstacles are near the top (y=0) and bottom obstacles are near the ground level
-        if (obstacle.y < WINDOW_HEIGHT / 2) { // Simple check: if obstacle is in the upper half of the screen
+        if (obstacle.y < WINDOW_HEIGHT / 2) { 
             flip = SDL_FLIP_VERTICAL;
         }
 
@@ -112,7 +112,7 @@ bool Obstacle::isColliding(int character_width, int character_height) {
     for (const auto& obstacle : obstacles) {
         // Kiểm tra va chạm hình chữ nhật đơn giản
         // Định nghĩa một lề va chạm (bạn có thể điều chỉnh giá trị này)
-        int collision_margin = 20; // Ví dụ: giảm 20 pixel từ mỗi cạnh
+        int collision_margin = 20;
 
         // Kiểm tra va chạm hình chữ nhật với lề
         if (char_x + collision_margin < obstacle.x + obstacle.w - collision_margin &&

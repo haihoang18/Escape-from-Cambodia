@@ -34,13 +34,13 @@ private:
     const int IDLE_THRESHOLD;   // Time threshold before stungun activates
     const int MOVEMENT_THRESHOLD; // Distance threshold to consider character as "moved"
     bool is_active;             // Flag to track if stungun is actively chasing
-    
+    bool* is_jumping_ptr; // Con trỏ tới trạng thái nhảy của nhân vật
     // Renderer
     SDL_Renderer* renderer;
     
 public:
     // Constructor
-    StunGun(SDL_Renderer* renderer, int* target_x, int* target_y);
+    StunGun(SDL_Renderer* renderer, int* target_x, int* target_y, bool* is_jumping_ptr);
     
     // Destructor
     ~StunGun();
