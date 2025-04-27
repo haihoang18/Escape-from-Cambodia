@@ -6,6 +6,8 @@
 ![image alt](https://i.dailymail.co.uk/i/pix/2013/04/07/article-2305091-19235309000005DC-601_1024x615_large.jpg)
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
     
+    9 / 10 nha sĩ khuyên dùng 👍.
+
     Được đánh giá: Messi / 10 bởi người hâm mộ
     
     GIỚI THIỆU GAME
@@ -51,6 +53,7 @@
 - obstacle.cpp và obstacle.h: Các tệp này định nghĩa lớp Obstacle, quản lý các chướng ngại vật trong game. Lớp này có các phương thức để tạo (spawn) chướng ngại vật ở cả phía trên và dưới màn hình, cập nhật vị trí của chúng khi màn hình cuộn, vẽ chúng và kiểm tra va chạm với nhân vật. Lớp Obstacle cũng bao gồm logic để tăng tốc độ di chuyển của chướng ngại vật theo thời gian.
 - stungun.cpp và stungun.h: Các tệp này định nghĩa lớp StunGun, biểu diễn một đối tượng "stungun" có khả năng theo dõi nhân vật. Lớp này bao gồm logic để kích hoạt "stungun" khi nhân vật đứng yên trong một khoảng thời gian, di chuyển nó về phía nhân vật, xử lý animation (hoạt ảnh), vẽ nó lên màn hình và kiểm tra va chạm với nhân vật. Nó cũng có chức năng đặt lại vị trí sau khi va chạm.
 - utils.cpp và utils.h: Các tệp này chứa các hàm tiện ích chung được sử dụng trong dự án. Các hàm này bao gồm khởi tạo thư viện SDL và SDL_image, tải texture (hình ảnh) từ tệp (bao gồm cả tải với nền trong suốt) và có thể có các hàm khác liên quan đến cập nhật animation cho nhân vật.
+
 Google Drive: https://drive.google.com/file/d/1QfriavwrbZT8mvmzOxZjqquefHW2JwJp/view?usp=share_link
 
-![image alt] (https://github.com/haihoang18/Escape-from-Cambodia/blob/78fe809e68653bd736666de89678feb1cee31789/background/background1.png)
+![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/78fe809e68653bd736666de89678feb1cee31789/background/background1.png)
