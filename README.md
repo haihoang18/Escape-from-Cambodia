@@ -15,7 +15,11 @@
     
     9 / 10 nha sĩ khuyên dùng 👍.
 
-    Được đánh giá: Messi / 10 bởi người hâm mộ
+    Được đánh giá: Messi / 10 bởi người hâm mộ.
+
+    Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.
+    
+    Khuyến cáo không dùng cho trẻ trên 960 tháng tuổi, dùng thì cũng không sao.
     
     GIỚI THIỆU GAME
 
