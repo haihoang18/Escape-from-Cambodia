@@ -1,11 +1,17 @@
     MỘT VÀI NHẬN XÉT CỦA NHỮNG NGƯỜI TRẢI NGHIỆM 🐧:
+
 - Ubisoft: Đây đúng là một kiệt tác 🤌✨ ✨ , chúng tôi muốn mua lại game của bạn, 1 tỉ $ đủ không ?
+
 - Microsoft: Hãy về làm cho chúng tôi, we need you. 🙏🙏🙏
+
 - Hidetaka Miyazaki (cha đẻ Elden Ring): Sau khi chơi game này, tôi cảm thấy hổ thẹn về tác phẩm của mình 😭, nếu game này ra sớm vài năm, Elden Ring có lẽ đã mất giải Game of the year.
+
 - Rolnado: Người sáng tạo ra game này mới thực sự là GOAT, i love you, you're my idol. 💋💋💋
 ![image alt](https://i.dailymail.co.uk/i/pix/2013/04/07/article-2305091-19235309000005DC-601_1024x615_large.jpg)
+
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
-    
+
+- ChatGPT: ![image alt] (/Users/ha1hoang/Documents/GitHub/Escape-from-Campuchia/Ảnh màn hình 2025-04-27 lúc 21.42.55.png)
     9 / 10 nha sĩ khuyên dùng 👍.
 
     Được đánh giá: Messi / 10 bởi người hâm mộ
