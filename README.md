@@ -27,10 +27,13 @@
     GIỚI THIỆU GAME
 
 1. Nội dung
+
 - Chạy để không bị chích điện. ᯓ🏃‍➡️
+
 - Nhảy kết hợp di chuyển để tránh địch.
 
 2. Các đối tượng trong game
+
 - Nhân vật chính 
 
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/character/horseman_jump_right.png)
@@ -45,6 +48,7 @@
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/7ff995f73a7dc3fd5f63cdab8a90ff35c44ac391/stungun/stungun_2.png)
 
 3. Hướng dẫn chơi
+
 - Màn hình start:
 
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/f48d33720daf2665784fe68f54724f0e73231343/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.19.59.png)
@@ -56,6 +60,7 @@
 ![image alt](https://github.com/haihoang18/Escape-from-Cambodia/blob/4d0ac287b61200b78c45256c35860306764cb995/%E1%BA%A2nh%20m%C3%A0n%20h%C3%ACnh%202025-04-27%20l%C3%BAc%2023.35.50.png)
 
 4. Cơ chế
+
 - Nhân vật chính chạm vào địch, súng điện là thua game 👎👎👎
 
 - Địch sẽ xuất hiện cả bên dưới và bên trên màn hình 
@@ -85,6 +90,7 @@
 - Súng điện, bụi tiên: tạo bằng PixelMe.
 
 6. Code
+
 - main.cpp:  xử lý đầu vào từ người dùng (di chuyển, nhảy, khởi động lại game), cập nhật vị trí và trạng thái của nhân vật, kiểm tra va chạm với chướng ngại vật và "stungun", quản lý vật phẩm tăng sức mạnh (power-up) cho phép bay, cập nhật trạng thái game (thua cuộc, bị choáng) và điều khiển quá trình render (vẽ) các đối tượng lên màn hình.
 
 - background.cpp và background.h: xử lý việc cuộn nền (background) của trò chơi, tạo cảm giác chuyển động liên tục. Hàm chính trong đây là moving_background, có nhiệm vụ cập nhật vị trí của hai lớp nền để chúng di chuyển và lặp lại.
