@@ -11,7 +11,7 @@
 
 - Jack J97: Game này còn cháy hơn cả lửa chùa. 🔥🔥🔥
 
-- ChatGPT: ![image alt] (/Users/ha1hoang/Documents/GitHub/Escape-from-Campuchia/Ảnh màn hình 2025-04-27 lúc 21.42.55.png)
+- ChatGPT: ![image alt](Ảnh màn hình 2025-04-27 lúc 21.42.55.png)
     9 / 10 nha sĩ khuyên dùng 👍.
 
     Được đánh giá: Messi / 10 bởi người hâm mộ
