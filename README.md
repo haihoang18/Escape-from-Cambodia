@@ -39,11 +39,11 @@
 - Khi di chuyển quá chậm sẽ bị súng điện đuổi kịp 🔌⚡💥😵
 
 5. Về đồ họa của game
-- Nhân vật chính: Death road to Canada, chỉnh sửa lại bằng piskel
-- Địch: Tung tung tung sahur
-- Background: Sora
-- Animation: sử dụng bằng piskel
-- Súng điện, bụi tiên: tạo bằng PixelMe
+- Nhân vật chính: Death road to Canada, chỉnh sửa lại bằng piskel.
+- Địch: Tung tung tung sahur.
+- Background: Sora.
+- Animation: sử dụng piskel.
+- Súng điện, bụi tiên: tạo bằng PixelMe.
 
 6. Code
 - main.cpp:  xử lý đầu vào từ người dùng (di chuyển, nhảy, khởi động lại game), cập nhật vị trí và trạng thái của nhân vật, kiểm tra va chạm với chướng ngại vật và "stungun", quản lý vật phẩm tăng sức mạnh (power-up) cho phép bay, cập nhật trạng thái game (thua cuộc, bị choáng) và điều khiển quá trình render (vẽ) các đối tượng lên màn hình.
